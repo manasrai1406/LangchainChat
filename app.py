@@ -52,7 +52,7 @@ if name != '':
                 param4 = st.radio("Select your choice",
                 ["4.1 Strongly Agree","4.2 Slightly Agree","4.3 Agree","4.4 Disagree","4.5 Slightly Diagree","4.6 Strongly Diasagree"],index = None)
 
-                st.subheader("Question 5 : Can do you handle stressful situations or high-pressure environments?")
+                st.subheader("Question 5 : Can you handle stressful situations or high-pressure environments?")
                 param5 = st.radio("Select your choice",
                 ["5.1 Strongly Agree","5.2 Slightly Agree","5.3 Agree","5.4 Disagree","5.5 Slightly Diagree","5.6 Strongly Diasagree"],index = None)
 
@@ -60,13 +60,14 @@ if name != '':
                 
 
                 if param1!=None and param2 != None and param3!= None and param4!=None and param5 != None:
-                    answer_stmt = f"Assume that you are a career counsellor for {name} who is a {genre} student your task is to identify his personality type according to psychology and  he has {TMAY} as his description and hobbies as {Hobby} also on asking him How do you feel about working in team environments versus working independently he answers {param1} and for question When faced with a problem, do you tend to approach it systematically or do you prefer to explore various possibilities before deciding on a solution? he answers {param2} and for third question which is How important is it for you to have clear goals and objectives in your work? he answers as {param3} when asked about how important it is to have clear goals and objective for work he answered {param4} and for the last question which is How do you handle stressful situations or high-pressure environments? he replies as {param5} answer his peronality type in 10 words"
+                    answer_stmt = f"Assume that you are a career counsellor for {name} who is a {genre} student your task is to identify his personality type according to psychology and  he has {TMAY} as his description and hobbies as {Hobby} also on asking him How do you feel about working in team environments versus working independently he answers {param1} and for question When faced with a problem, do you tend to approach it systematically or do you prefer to explore various possibilities before deciding on a solution? he answers {param2} and for third question which is How important is it for you to have clear goals and objectives in your work? he answers as {param3} when asked about how important it is to have clear goals and objective for work he answered {param4} and for the last question which is How do you handle stressful situations or high-pressure environments? he replies as {param5} answer his peronality type"
 
                     type_personality = llm.invoke(answer_stmt)
                     st.write(f"The personality type is as {type_personality}")
 
                     goals = f"Based on {type_personality} tell top 5 career options for {name} just give name of profession and text about him in not more tha 15 words and don't display word count try to keep description short as possible"   
                     final_goal = llm.invoke(goals)
+                    st.subheader("Some great career option for you can be :")
                     st.write(final_goal)
 
                 # prompt_template = PromptTemplate()

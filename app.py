@@ -4,10 +4,9 @@ from langchain_openai import OpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 
-from dotenv import load_dotenv
-load_dotenv()
+OPENAI_API_KEY = st.secrets["key"]
 
-llm = OpenAI(openai_api_key = os.getenv("OPENAI_API_KEY"),temperature = 0.8)
+llm = OpenAI(openai_api_key = OPENAI_API_KEY,temperature = 0.8)
 
 st.subheader("Hello Welcome to career counselling bot")
 name = st.text_input("Enter your name")

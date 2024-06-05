@@ -1,88 +1,122 @@
-import streamlit as st 
+import streamlit as st
 import os
+from secret_key import openapi_key
 from langchain_openai import OpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 
-OPENAI_API_KEY = st.secrets["key"]
+# Set up OpenAI API key
+os.environ['OPENAI_API_KEY'] = openapi_key
 
-llm = OpenAI(openai_api_key = OPENAI_API_KEY,temperature = 0.8)
+# Initialize the LLM with the OpenAI API
+llm = OpenAI(openai_api_key= openapi_key, temperature=0.75)
 
-st.subheader("Hello Welcome to career counselling bot")
+# Initialize conversation history
+if "conversation" not in st.session_state:
+    st.session_state.conversation = []
+
+# Define the main prompt template
+main_prompt_template = """You are a career counsellor for an EdTech company. Use the conversation history to provide personalized advice to the student.
+
+Conversation History:
+{history}
+
+Student: {user_input}
+Counsellor:"""
+
+def generate_prompt(conversation, user_input):
+    history = "\n".join(conversation)
+    return main_prompt_template.format(history=history, user_input=user_input)
+
+# Streamlit user interface
+st.title("Welcome to EasyEd Community")
+
 name = st.text_input("Enter your name")
-
-if name != '':
-    st.write(f"Hello {name} Let's clarify your doubts")
+if name! = '':
+    st.write(f"Hello {name}! Let's clarify your doubts.")
     st.subheader("Enter Your Current Education Level")
-    genre = st.radio(
-    "Please select one:",
-    ["High-School-junior", "College", "Intermediate"],index = None)
+    edu_level = st.radio(
+        "Please select one:",
+        ["High-School-Junior", "College", "Intermediate"],
+        index=None
+    )
     st.write('<style>div.Widget.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
 
-    if genre != None:
-        TMAY = st.text_input("Describe the problem you are facing")
-        if TMAY != '':
-            Hobby = st.text_input("Enter your favourite Passtime Hobby")
-            if Hobby != '':
-                # prompt_template=PromptTemplate(input_variables=['Hobby'],template="As a career counsellor for a student and hobbies as {Hobby} generate some career option")
-                # prompt_template.format(Hobby=Hobby)
-                # chain=LLMChain(llm=llm,prompt=prompt_template)
-                # feedback = chain.run(Hobby)
-                # st.write(feedback)
-                st.header("Answer following questions according to the scale given below :")
-                # param1 = st.slider('Question 1 -> **How do you feel about working in team environments versus working independently?**', 0, 6, 1)
-                # param2 = st.slider('Question 2 -> **When faced with a problem, do you tend to approach it systematically or do you prefer to explore various possibilities before deciding on a solution?**', 0, 6, 1)
-                # param3 = st.slider('Question 3 -> **How important is it for you to have clear goals and objectives in your work?**', 0, 6, 1)
-                # param4 = st.slider('Question 4 -> **Would you prefer a career that allows for constant learning and adaptation, or one that provides stability and routine?**',0,6,1)
-                # param5 = st.slider('Question 5 -> **Can do you handle stressful situations or high-pressure environments?**',0,6,1)
-                
-                st.subheader("Question 1 : How do you feel about working in team environments versus working independently?")
-                param1 = st.radio("Select your choice",
-                ["1.1 Strongly Agree","1.2 Slightly Agree","1.3 Agree","1.4 Disagree","1.5 Slightly Diagree","1.6 Strongly Diasagree"],index = None)
+    if edu_level != None:
+        problem_description = st.text_input("Describe the problem you are facing")
+        if problem_description:
+            hobby = st.text_input("Enter your favourite pastime hobby")
+            if hobby:
+                st.header("Answer the following questions according to the scale given below:")
 
-                st.subheader("Question 2 : When faced with a problem, do you tend to approach it systematically or do you prefer to explore various possibilities before deciding on a solution?")
-                param2 = st.radio("Select your choice",
-                ["2.1 Strongly Agree","2.2 Slightly Agree","2.3 Agree","2.4 Disagree","2.5 Slightly Diagree","2.6 Strongly Diasagree"],index = None)
+                questions = [
+                    "How do you feel about working in team environments versus working independently?",
+                    "When faced with a problem, do you tend to approach it systematically or do you prefer to explore various possibilities before deciding on a solution?",
+                    "How important is it for you to have clear goals and objectives in your work?",
+                    "Would you prefer a career that allows for constant learning and adaptation, or one that provides stability and routine?",
+                    "Can you handle stressful situations or high-pressure environments?"
+                ]
 
-                st.subheader("Question 3 : How important is it for you to have clear goals and objectives in your work?")
-                param3 = st.radio("Select your choice",
-                ["3.1 Strongly Agree","3.2 Slightly Agree","3.3 Agree","3.4Disagree","3.5 Slightly Diagree","3.6 Strongly Diasagree"],index = None)
+                responses = []
+                for i, question in enumerate(questions, 1):
+                    st.subheader(f"Question {i}: {question}")
+                    response = st.radio(
+                        f"Select your choice for Question {i}",
+                        [f"{i}.{j} {option}" for j, option in enumerate([
+                            "Strongly Agree", "Slightly Agree", "Agree", "Disagree", "Slightly Disagree", "Strongly Disagree"
+                        ], 1)],
+                        index=None
+                    )
+                    responses.append(response)
 
-                st.subheader("Question 4 : How important is it for you to have clear goals and objectives in your work?")
-                param4 = st.radio("Select your choice",
-                ["4.1 Strongly Agree","4.2 Slightly Agree","4.3 Agree","4.4 Disagree","4.5 Slightly Diagree","4.6 Strongly Diasagree"],index = None)
+                if all(responses):
+                    # Generate prompt for personality analysis
+                    answer_stmt = (
+                        f"Assume you are a career counsellor for {name}, a {edu_level} student. "
+                        f"The student's problem description is: {problem_description}. Their hobby is {hobby}. "
+                        f"Here are their responses to the questions: "
+                        f"1) {responses[0]}, 2) {responses[1]}, 3) {responses[2]}, 4) {responses[3]}, 5) {responses[4]}. "
+                        f"Based on this information, determine and summarize their personality type."
+                    )
 
-                st.subheader("Question 5 : Can you handle stressful situations or high-pressure environments?")
-                param5 = st.radio("Select your choice",
-                ["5.1 Strongly Agree","5.2 Slightly Agree","5.3 Agree","5.4 Disagree","5.5 Slightly Diagree","5.6 Strongly Diasagree"],index = None)
+                    # Run the personality analysis prompt
+                    prompt = generate_prompt(st.session_state.conversation, answer_stmt)
+                    chain = LLMChain(prompt_template=PromptTemplate(input_variables=["user_input"], template=prompt), llm=llm)
+                    personality_type = chain.run(user_input=answer_stmt)
 
+                    st.session_state.conversation.append(f"Student: {answer_stmt}")
+                    st.session_state.conversation.append(f"Counsellor: {personality_type}")
 
-                
+                    # Display personality type
+                    st.write(f"The personality type is: {personality_type}")
 
-                if param1!=None and param2 != None and param3!= None and param4!=None and param5 != None:
-                    answer_stmt = f"Assume that you are a career counsellor for {name} who is a {genre} student your task is to identify and summarise his personality type according to psychology and  he has {TMAY} as his description and hobbies as {Hobby} also on asking him How do you feel about working in team environments versus working independently he answers {param1} and for question When faced with a problem, do you tend to approach it systematically or do you prefer to explore various possibilities before deciding on a solution? he answers {param2} and for third question which is How important is it for you to have clear goals and objectives in your work? he answers as {param3} when asked about how important it is to have clear goals and objective for work he answered {param4} and for the last question which is How do you handle stressful situations or high-pressure environments? he replies as {param5} answer his peronality type"
+                    # Generate prompt for career advice based on personality type
+                    goals = (
+                        f"Based on the personality type '{personality_type}', suggest the top 5 career options for {name}. "
+                        f"Provide the name of the profession and a short description (max 15 words) for each."
+                    )
 
-                    type_personality = llm.invoke(answer_stmt)
-                    st.write(f"The personality type is as {type_personality}")
+                    career_options = llm.invoke(goals)
+                    st.subheader("Some great career options for you could be:")
+                    st.write(career_options)
 
-                    goals = f"Based on {type_personality} tell top 5 career options for {name} just give name of profession and text about him in not more tha 15 words and don't display word count try to keep description short as possible"   
-                    final_goal = llm.invoke(goals)
-                    st.subheader("Some great career option for you can be :")
-                    st.write(final_goal)
+                    # Append career advice to the conversation history
+                    st.session_state.conversation.append(f"Student: {goals}")
+                    st.session_state.conversation.append(f"Counsellor: {career_options}")
 
-                # prompt_template = PromptTemplate()
-                # prompt_template.format()
-                # chain=LLMChain(llm=llm,prompt=prompt_template)
-                # feedback = chain.run()
-                # # st.write(feedback)
-                # type_personality = llm.invoke(answer_stmt)
-                # st.write(f"The personality type is as {type_personality}")
-
-                # goals = f"Based on {type_personality} tell top 5 career options for {name} just give name of profession and text about hem in not more tha 15 words try to keep description short as possible"   
-                # final_goal = llm.invoke(goals)
-                # st.write(final_goal)                          
+            else:
+                st.subheader("Please enter your favourite pastime hobby to continue.")
+        else:
+            st.subheader("Please describe the problem you are facing to continue.")
     else:
-        st.subheader("Please **Select** Education status to continue ⬆️ ")
-    
+        st.subheader("Please select your current education level to continue.")
 
-    
+# Display conversation history
+st.header("Conversation History")
+for message in st.session_state.conversation:
+    st.write(message)
+
+# Button to clear the conversation history
+if st.button("Clear Conversation"):
+    st.session_state.conversation = []
+    st.experimental_rerun()
